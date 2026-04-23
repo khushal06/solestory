@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+
+export const maxDuration = 60 // seconds — CLIP model needs time on cold start
 import { recognizeShoe } from '@/lib/ai/shoeRecognition'
 import { createServiceClient } from '@/lib/supabase/server'
 
