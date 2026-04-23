@@ -12,6 +12,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'image_url is required' }, { status: 400 })
     }
 
+    // Log env state so Vercel logs show exactly what's available
+    console.log('[/api/recognize] GOOGLE_AI_API_KEY set:', !!process.env.GOOGLE_AI_API_KEY)
+    console.log('[/api/recognize] SUPABASE URL set:', !!process.env.NEXT_PUBLIC_SUPABASE_URL)
+
     const result = await recognizeShoe(image_url)
 
     if (!result) {
