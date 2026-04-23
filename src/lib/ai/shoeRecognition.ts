@@ -206,12 +206,27 @@ async function identifyWithCLIP(imageUrl: string, shoes: Shoe[]): Promise<Recogn
 
 // ── Main export ────────────────────────────────────────────────────────────────
 export async function recognizeShoe(imageUrl: string): Promise<RecognitionResult | null> {
-  // 1. Try Gemini first — identifies any shoe in the world
-  const geminiResult = await identifyWithGemini(imageUrl)
-  if (geminiResult) return geminiResult
+  const onVercel = !!process.env.VERCEL
+  const hasGeminiKey = !!process.env.GOOGLE_AI_API_KEY
 
-  // 2. Fall back to CLIP catalog matching
-  console.log('[recognizeShoe] Gemini unavailable, falling back to CLIP catalog')
+  console.log(`[recognizeShoe] env — Vercel: ${onVercel}, Gemini key: ${hasGeminiKey}`)
+
+  // 1. Try Gemini — works everywhere, identifies any shoe in the world
+  if (hasGeminiKey) {
+    const geminiResult = await identifyWithGemini(imageUrl)
+    if (geminiResult) return geminiResult
+    console.warn('[recognizeShoe] Gemini returned null')
+  } else {
+    console.warn('[recognizeShoe] GOOGLE_AI_API_KEY not set — add it in Vercel env vars')
+  }
+
+  // 2. CLIP catalog fallback — only works locally (ONNX needs native binaries unavailable on Vercel)
+  if (onVercel) {
+    console.error('[recognizeShoe] On Vercel with no Gemini result — cannot fall back to CLIP')
+    return null
+  }
+
+  console.log('[recognizeShoe] falling back to CLIP catalog (local only)')
   const { createServiceClient } = await import('@/lib/supabase/server')
   const supabase = createServiceClient()
 
